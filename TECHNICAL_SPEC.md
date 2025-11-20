@@ -66,6 +66,8 @@ interface PhotoFile {
 interface FormSubmission {
   reporterName: string;
   branchName: string;
+  dateStarted: string; // YYYY-MM-DD
+  dateEnded: string; // YYYY-MM-DD
   submissionDate: string; // ISO 8601 format
   properties: PropertySubmission[];
   additionalComments: string | null;
@@ -114,6 +116,8 @@ Content-Type: application/json
 {
   reporterName: string;
   branchName: string;
+  dateStarted: string; // YYYY-MM-DD
+  dateEnded: string; // YYYY-MM-DD
   submissionDate: string; // ISO 8601
   properties: PropertySubmission[];
   additionalComments: string | null;
@@ -187,6 +191,8 @@ Content-Type: application/json
 {
   "reporterName": "Juan Dela Cruz",
   "branchName": "Head Office",
+  "dateStarted": "2024-01-01",
+  "dateEnded": "2024-01-05",
   "submissionDate": "2024-01-15T10:30:00Z",
   "properties": [
     {

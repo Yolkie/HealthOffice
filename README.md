@@ -137,6 +137,8 @@ User Form → Next.js API → n8n Webhook → AI Processing → Email Report
 {
   "reporterName": "Juan Dela Cruz",
   "branchName": "Head Office",
+  "dateStarted": "2024-01-01",
+  "dateEnded": "2024-01-05",
   "submissionDate": "2024-01-15T10:30:00Z",
   "properties": [
     {

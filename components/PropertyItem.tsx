@@ -57,14 +57,14 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
 
   return (
     <div className="space-y-4 rounded-lg border p-3 sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Label className="text-base font-semibold">{property.name}</Label>
           {property.description && (
             <p className="text-xs italic text-muted-foreground mt-1">{property.description}</p>
           )}
         </div>
-        <div className="flex flex-wrap gap-3 sm:gap-4">
+        <div className="flex flex-wrap gap-3 sm:gap-4 sm:self-start">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"

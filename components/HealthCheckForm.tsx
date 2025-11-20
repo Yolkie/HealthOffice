@@ -32,9 +32,18 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
   const [submitStatus, setSubmitStatus] = React.useState<"idle" | "success" | "error">("idle");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
 
+  const todayISO = React.useMemo(() => new Date().toISOString().split("T")[0], []);
+  const firstDayISO = React.useMemo(() => {
+    const current = new Date();
+    current.setDate(1);
+    return current.toISOString().split("T")[0];
+  }, []);
+
   const defaultValues: FormSubmissionInput = {
     reporterName: "",
     branchName: BRANCH_OPTIONS[0],
+    dateStarted: firstDayISO,
+    dateEnded: todayISO,
     submissionDate: new Date().toISOString(),
     properties: OFFICE_PROPERTIES.map((prop) => ({
       id: prop.id,
@@ -68,6 +77,8 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
   const properties = watch("properties");
   const reporterName = watch("reporterName");
   const branchName = watch("branchName");
+  const dateStarted = watch("dateStarted");
+  const dateEnded = watch("dateEnded");
   const additionalComments = watch("additionalComments");
 
   const handlePropertyChange = (index: number, value: PropertySubmission) => {
@@ -108,6 +119,8 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
       setTimeout(() => {
         setValue("reporterName", "");
         setValue("branchName", BRANCH_OPTIONS[0]);
+        setValue("dateStarted", firstDayISO);
+        setValue("dateEnded", todayISO);
         setValue("properties", defaultValues.properties);
         setValue("additionalComments", null);
         setSubmitStatus("idle");
@@ -139,60 +152,109 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
         <CardHeader className="px-4 sm:px-6">
           <CardTitle className="text-xl sm:text-2xl">Branch Information</CardTitle>
           <CardDescription className="text-sm italic">
-            Provide your name and select the branch so each submission is traceable.
+            Provide your name, select the branch, and indicate when the check-up started and ended.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 px-4 sm:px-6">
-          <div className="space-y-4">
+          <div>
+            <Label htmlFor="reporter-name" className="text-sm">
+              Name <span className="text-destructive">*</span>
+            </Label>
+            <p className="text-xs italic text-muted-foreground">
+              Please enter your full name for tracking and follow-up.
+            </p>
+            <Input
+              id="reporter-name"
+              placeholder="e.g., Juan Dela Cruz"
+              value={reporterName}
+              onChange={(e) => setValue("reporterName", e.target.value, { shouldValidate: true })}
+              className="mt-1"
+              aria-invalid={errors.reporterName ? "true" : "false"}
+              aria-describedby={errors.reporterName ? "reporter-name-error" : undefined}
+            />
+            {errors.reporterName && (
+              <p id="reporter-name-error" className="mt-1 text-xs text-destructive" role="alert">
+                {errors.reporterName.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="branch-name" className="text-sm">
+              Branch Name <span className="text-destructive">*</span>
+            </Label>
+            <p className="text-xs italic text-muted-foreground">
+              Select the branch you are reporting from to tag the submission correctly.
+            </p>
+            <select
+              id="branch-name"
+              value={branchName}
+              onChange={(e) =>
+                setValue("branchName", e.target.value as FormSubmissionInput["branchName"], {
+                  shouldValidate: true,
+                })
+              }
+              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-invalid={errors.branchName ? "true" : "false"}
+              aria-describedby={errors.branchName ? "branch-name-error" : undefined}
+            >
+              {BRANCH_OPTIONS.map((branch) => (
+                <option key={branch} value={branch}>
+                  {branch}
+                </option>
+              ))}
+            </select>
+            {errors.branchName && (
+              <p id="branch-name-error" className="mt-1 text-xs text-destructive" role="alert">
+                {errors.branchName.message}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label htmlFor="reporter-name" className="text-sm">
-                Name <span className="text-destructive">*</span>
+              <Label htmlFor="date-started" className="text-sm">
+                Date Started <span className="text-destructive">*</span>
               </Label>
               <p className="text-xs italic text-muted-foreground">
-                Please enter your full name for tracking and follow-up.
+                Choose the date when this monthly check-up began.
               </p>
               <Input
-                id="reporter-name"
-                placeholder="e.g., Juan Dela Cruz"
-                value={reporterName}
-                onChange={(e) =>
-                  setValue("reporterName", e.target.value, { shouldValidate: true })
-                }
+                id="date-started"
+                type="date"
+                value={dateStarted}
+                max={dateEnded}
+                onChange={(e) => setValue("dateStarted", e.target.value, { shouldValidate: true })}
                 className="mt-1"
-                aria-invalid={errors.reporterName ? "true" : "false"}
-                aria-describedby={errors.reporterName ? "reporter-name-error" : undefined}
+                aria-invalid={errors.dateStarted ? "true" : "false"}
+                aria-describedby={errors.dateStarted ? "date-started-error" : undefined}
               />
-              {errors.reporterName && (
-                <p id="reporter-name-error" className="mt-1 text-xs text-destructive" role="alert">
-                  {errors.reporterName.message}
+              {errors.dateStarted && (
+                <p id="date-started-error" className="mt-1 text-xs text-destructive" role="alert">
+                  {errors.dateStarted.message}
                 </p>
               )}
             </div>
-
             <div>
-              <Label htmlFor="branch-name" className="text-sm">
-                Branch Name <span className="text-destructive">*</span>
+              <Label htmlFor="date-ended" className="text-sm">
+                Date Ended <span className="text-destructive">*</span>
               </Label>
               <p className="text-xs italic text-muted-foreground">
-                Select the branch you are reporting from to tag the submission correctly.
+                Choose the date when the inspection was completed.
               </p>
-              <select
-                id="branch-name"
-                value={branchName}
-                onChange={(e) => setValue("branchName", e.target.value as FormSubmissionInput["branchName"], { shouldValidate: true })}
-                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                aria-invalid={errors.branchName ? "true" : "false"}
-                aria-describedby={errors.branchName ? "branch-name-error" : undefined}
-              >
-                {BRANCH_OPTIONS.map((branch) => (
-                  <option key={branch} value={branch}>
-                    {branch}
-                  </option>
-                ))}
-              </select>
-              {errors.branchName && (
-                <p id="branch-name-error" className="mt-1 text-xs text-destructive" role="alert">
-                  {errors.branchName.message}
+              <Input
+                id="date-ended"
+                type="date"
+                value={dateEnded}
+                min={dateStarted}
+                onChange={(e) => setValue("dateEnded", e.target.value, { shouldValidate: true })}
+                className="mt-1"
+                aria-invalid={errors.dateEnded ? "true" : "false"}
+                aria-describedby={errors.dateEnded ? "date-ended-error" : undefined}
+              />
+              {errors.dateEnded && (
+                <p id="date-ended-error" className="mt-1 text-xs text-destructive" role="alert">
+                  {errors.dateEnded.message}
                 </p>
               )}
             </div>

@@ -27,6 +27,8 @@ export interface PropertySubmission {
 export interface FormSubmission {
   reporterName: string;
   branchName: string;
+  dateStarted: string;
+  dateEnded: string;
   submissionDate: string;
   properties: PropertySubmission[];
   additionalComments: string | null;

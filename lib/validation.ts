@@ -55,6 +55,15 @@ export const propertySubmissionSchema = z.object({
   }
 );
 
+const isValidDate = (value: string) => {
+  if (!value) {
+    return false;
+  }
+
+  const timestamp = Date.parse(value);
+  return !Number.isNaN(timestamp);
+};
+
 export const formSubmissionSchema = z.object({
   reporterName: z
     .string()
@@ -63,6 +72,12 @@ export const formSubmissionSchema = z.object({
   branchName: z.enum(BRANCH_OPTIONS as [string, ...string[]], {
     errorMap: () => ({ message: "Please select a branch" }),
   }),
+  dateStarted: z
+    .string()
+    .refine(isValidDate, "Please provide a valid start date"),
+  dateEnded: z
+    .string()
+    .refine(isValidDate, "Please provide a valid end date"),
   submissionDate: z.string().datetime(),
   properties: z.array(propertySubmissionSchema).min(1),
   additionalComments: z
@@ -81,18 +96,32 @@ export const formSubmissionSchema = z.object({
       timezone: z.string().optional(),
     })
     .optional(),
-}).refine(
-  (data) => {
-    const totalSize = data.properties.reduce((sum, prop) => {
-      return sum + prop.photos.reduce((photoSum, photo) => photoSum + photo.size, 0);
-    }, 0);
-    return totalSize <= VALIDATION_RULES.photos.maxTotalSize;
-  },
-  {
-    message: `Total photo size exceeds ${VALIDATION_RULES.photos.maxTotalSize / 1024 / 1024}MB limit`,
-    path: ["properties"],
-  }
-);
+})
+  .refine(
+    (data) => {
+      const totalSize = data.properties.reduce((sum, prop) => {
+        return sum + prop.photos.reduce((photoSum, photo) => photoSum + photo.size, 0);
+      }, 0);
+      return totalSize <= VALIDATION_RULES.photos.maxTotalSize;
+    },
+    {
+      message: `Total photo size exceeds ${VALIDATION_RULES.photos.maxTotalSize / 1024 / 1024}MB limit`,
+      path: ["properties"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (!isValidDate(data.dateStarted) || !isValidDate(data.dateEnded)) {
+        return false;
+      }
+
+      return new Date(data.dateStarted).getTime() <= new Date(data.dateEnded).getTime();
+    },
+    {
+      message: "Date Ended must be the same or later than Date Started",
+      path: ["dateEnded"],
+    }
+  );
 
 export type FormSubmissionInput = z.infer<typeof formSubmissionSchema>;
 

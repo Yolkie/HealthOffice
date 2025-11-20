@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
     const payload = {
       reporterName: data.reporterName,
       branchName: data.branchName,
+      dateStarted: data.dateStarted,
+      dateEnded: data.dateEnded,
       submissionDate: data.submissionDate,
       properties: data.properties,
       additionalComments: data.additionalComments,
