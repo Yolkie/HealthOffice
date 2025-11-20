@@ -64,8 +64,8 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
             <p className="text-xs italic text-muted-foreground mt-1">{property.description}</p>
           )}
         </div>
-        <div className="flex flex-wrap gap-3 sm:gap-4 sm:self-start">
-          <label className="flex items-center gap-2 cursor-pointer">
+        <div className="flex flex-wrap gap-3 sm:gap-6 sm:self-start">
+          <label className="flex items-center gap-2 cursor-pointer min-w-[140px] text-sm">
             <input
               type="radio"
               name={`condition-${property.id}`}
@@ -74,9 +74,9 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
               onChange={() => handleConditionChange("Good")}
               className="h-4 w-4 text-primary"
             />
-            <span className="text-sm whitespace-nowrap">Good</span>
+            <span className="whitespace-nowrap">Good</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-2 cursor-pointer min-w-[140px] text-sm">
             <input
               type="radio"
               name={`condition-${property.id}`}
@@ -85,9 +85,9 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
               onChange={() => handleConditionChange("Needs Fixing")}
               className="h-4 w-4 text-primary"
             />
-            <span className="text-sm whitespace-nowrap">Needs Fixing</span>
+            <span className="whitespace-nowrap">Needs Fixing</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-2 cursor-pointer min-w-[140px] text-sm">
             <input
               type="radio"
               name={`condition-${property.id}`}
@@ -96,7 +96,7 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
               onChange={() => handleConditionChange("Not Available")}
               className="h-4 w-4 text-primary"
             />
-            <span className="text-sm whitespace-nowrap">Not Available</span>
+            <span className="whitespace-nowrap">Not Available</span>
           </label>
         </div>
       </div>
