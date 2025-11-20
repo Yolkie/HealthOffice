@@ -9,6 +9,7 @@ FROM base AS deps
 RUN npm install -g pnpm
 
 COPY package.json pnpm-lock.yaml* package-lock.json* yarn.lock* ./
+COPY prisma ./prisma
 
 RUN \
   if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; \
