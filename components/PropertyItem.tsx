@@ -56,15 +56,13 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
   const showDetails = value.condition === "Needs Fixing";
 
   return (
-    <div className="space-y-4 rounded-lg border p-3 sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="sm:max-w-[55%]">
-          <Label className="text-base font-semibold">{property.name}</Label>
-          {property.description && (
-            <p className="text-xs italic text-muted-foreground mt-1">{property.description}</p>
-          )}
-        </div>
-        <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3 sm:gap-4 sm:min-w-[360px]">
+    <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div>
+        <Label className="text-base font-semibold">{property.name}</Label>
+        {property.description && (
+          <p className="mt-1 text-sm text-gray-500">{property.description}</p>
+        )}
+        <div className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3 sm:gap-4">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
