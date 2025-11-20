@@ -10,6 +10,19 @@ export interface OBSConfig {
   publicUrl?: string;
 }
 
+const normalizeUrl = (url?: string) => {
+  if (!url) {
+    return undefined;
+  }
+
+  const trimmed = url.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
+};
+
 export const getOBSConfig = (): OBSConfig | null => {
   const enabled = process.env.OBS_ENABLED === "true";
   
@@ -30,13 +43,13 @@ export const getOBSConfig = (): OBSConfig | null => {
   return {
     provider,
     enabled: true,
-    endpoint: process.env.OBS_ENDPOINT,
+    endpoint: normalizeUrl(process.env.OBS_ENDPOINT),
     region: process.env.OBS_REGION || "us-east-1",
     bucket,
     accessKeyId,
     secretAccessKey,
     pathPrefix: process.env.OBS_PATH_PREFIX || "office-health-checkup",
-    publicUrl: process.env.OBS_PUBLIC_URL,
+    publicUrl: normalizeUrl(process.env.OBS_PUBLIC_URL),
   };
 };
 

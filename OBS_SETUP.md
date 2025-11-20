@@ -50,6 +50,10 @@ OBS_PATH_PREFIX=office-health-checkup
 OBS_PUBLIC_URL=https://your-cdn-domain.com
 ```
 
+> **Important:** `OBS_ENDPOINT` and `OBS_PUBLIC_URL` must include the protocol (`https://`).  
+> If you provide only the hostname (e.g., `files.example.com`), the application now automatically
+> prefixes it with `https://`, but it is best to configure the full URL explicitly to avoid “Invalid URL” errors.
+
 ### Step 2: AWS S3 Setup
 
 #### Create an S3 Bucket
