@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare payload for n8n webhook
     const payload = {
+      branchName: data.branchName,
       submissionDate: data.submissionDate,
       properties: data.properties,
       additionalComments: data.additionalComments,

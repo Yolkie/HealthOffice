@@ -12,21 +12,24 @@ interface OfficeProperty {
 }
 
 const OFFICE_PROPERTIES: OfficeProperty[] = [
-  { id: "air-conditioning", name: "Air Conditioning / HVAC" },
-  { id: "lighting", name: "Lighting" },
-  { id: "plumbing", name: "Plumbing" },
-  { id: "electrical-outlets", name: "Electrical Outlets" },
-  { id: "windows-doors", name: "Windows & Doors" },
-  { id: "flooring", name: "Flooring" },
+  { id: "electrical-outlets-switches", name: "Electrical Outlets & Switches" },
+  { id: "network-data-ports", name: "Network & Data Ports" },
+  { id: "cctv-cameras-tv-printers", name: "CCTV Cameras, TV, Printers" },
+  { id: "signage-logo-wall", name: "Signage / Logo Wall" },
+  { id: "aircon", name: "Aircon" },
+  { id: "aircon-tambol", name: "Aircon Tambol" },
+  { id: "tables", name: "Tables" },
+  { id: "chairs", name: "Chairs" },
+  { id: "cabinets", name: "Cabinets" },
+  { id: "light-fixtures", name: "Light Fixtures" },
+  { id: "blinds-curtains", name: "Blinds / Curtains" },
   { id: "walls-ceiling", name: "Walls & Ceiling" },
-  { id: "furniture", name: "Furniture" },
-  { id: "kitchen-facilities", name: "Kitchen Facilities" },
-  { id: "restrooms", name: "Restrooms" },
-  { id: "parking-area", name: "Parking Area" },
-  { id: "security-systems", name: "Security Systems" },
-  { id: "internet-network", name: "Internet/Network Connectivity" },
-  { id: "fire-safety", name: "Fire Safety Equipment" },
-  { id: "elevators", name: "Elevators" },
+  { id: "carpet", name: "Carpet" },
+  { id: "door", name: "Door" },
+  { id: "reception-counter", name: "Reception Counter" },
+  { id: "glass-panels-windows", name: "Glass Panels & Windows" },
+  { id: "flooring-tiles-vinyl", name: "Flooring (Tiles / Vinyl)" },
+  { id: "pest-control-signs", name: "Pest Control Signs" },
 ];
 ```
 
@@ -36,20 +39,24 @@ const OFFICE_PROPERTIES: OfficeProperty[] = [
 interface PropertySubmission {
   id: string;
   name: string;
-  condition: "Good" | "Needs Fixing";
+  condition: "Good" | "Needs Fixing" | "Not Available";
   comments: string | null;
   photos: PhotoFile[];
 }
 
 interface PhotoFile {
   filename: string;
-  base64: string;
+  base64?: string;
+  url?: string;
   mimeType: string;
   size: number;
   propertyId: string;
+  preview?: string;
+  obsKey?: string;
 }
 
 interface FormSubmission {
+  branchName: string;
   submissionDate: string; // ISO 8601 format
   properties: PropertySubmission[];
   additionalComments: string | null;
@@ -96,9 +103,15 @@ Content-Type: application/json
 #### Request Body
 ```typescript
 {
+  branchName: string;
   submissionDate: string; // ISO 8601
   properties: PropertySubmission[];
   additionalComments: string | null;
+  metadata?: {
+    userAgent?: string;
+    screenResolution?: string;
+    timezone?: string;
+  };
 }
 ```
 
@@ -162,11 +175,12 @@ Content-Type: application/json
 
 ```json
 {
+  "branchName": "Head Office",
   "submissionDate": "2024-01-15T10:30:00Z",
   "properties": [
     {
-      "id": "air-conditioning",
-      "name": "Air Conditioning",
+      "id": "aircon",
+      "name": "Aircon",
       "condition": "Needs Fixing",
       "comments": "Not cooling properly in the main office area. Temperature is consistently above 75°F.",
       "photos": [
@@ -175,13 +189,13 @@ Content-Type: application/json
           "base64": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
           "mimeType": "image/jpeg",
           "size": 245678,
-          "propertyId": "air-conditioning"
+          "propertyId": "aircon"
         }
       ]
     },
     {
-      "id": "lighting",
-      "name": "Lighting",
+      "id": "light-fixtures",
+      "name": "Light Fixtures",
       "condition": "Good",
       "comments": null,
       "photos": []

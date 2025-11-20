@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { PropertyItem } from "./PropertyItem";
 import {
   OFFICE_PROPERTIES,
@@ -31,6 +32,7 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
   const [submitError, setSubmitError] = React.useState<string | null>(null);
 
   const defaultValues: FormSubmissionInput = {
+    branchName: "",
     submissionDate: new Date().toISOString(),
     properties: OFFICE_PROPERTIES.map((prop) => ({
       id: prop.id,
@@ -62,6 +64,7 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
   });
 
   const properties = watch("properties");
+  const branchName = watch("branchName");
   const additionalComments = watch("additionalComments");
 
   const handlePropertyChange = (index: number, value: PropertySubmission) => {
@@ -100,6 +103,7 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
 
       // Reset form after successful submission
       setTimeout(() => {
+        setValue("branchName", "");
         setValue("properties", defaultValues.properties);
         setValue("additionalComments", null);
         setSubmitStatus("idle");
@@ -127,6 +131,36 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      <Card>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-xl sm:text-2xl">Branch Information</CardTitle>
+          <CardDescription className="text-sm">
+            Select or type the branch submitting this monthly report.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 px-4 sm:px-6">
+          <div>
+            <Label htmlFor="branch-name" className="text-sm">
+              Branch Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="branch-name"
+              placeholder="e.g., Head Office, Branch A"
+              value={branchName}
+              onChange={(e) => setValue("branchName", e.target.value, { shouldValidate: true })}
+              className="mt-1"
+              aria-invalid={errors.branchName ? "true" : "false"}
+              aria-describedby={errors.branchName ? "branch-name-error" : undefined}
+            />
+            {errors.branchName && (
+              <p id="branch-name-error" className="mt-1 text-xs text-destructive" role="alert">
+                {errors.branchName.message}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader className="px-4 sm:px-6">
           <CardTitle className="text-xl sm:text-2xl">Monthly Office Health Check-Up</CardTitle>

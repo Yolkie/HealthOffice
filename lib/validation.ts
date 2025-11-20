@@ -56,6 +56,10 @@ export const propertySubmissionSchema = z.object({
 );
 
 export const formSubmissionSchema = z.object({
+  branchName: z
+    .string()
+    .min(1, "Branch name is required")
+    .max(120, "Branch name must not exceed 120 characters"),
   submissionDate: z.string().datetime(),
   properties: z.array(propertySubmissionSchema).min(1),
   additionalComments: z

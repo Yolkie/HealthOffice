@@ -24,6 +24,7 @@ export interface PropertySubmission {
 }
 
 export interface FormSubmission {
+  branchName: string;
   submissionDate: string;
   properties: PropertySubmission[];
   additionalComments: string | null;
@@ -53,6 +54,14 @@ export const OFFICE_PROPERTIES: OfficeProperty[] = [
   { id: "glass-panels-windows", name: "Glass Panels & Windows" },
   { id: "flooring-tiles-vinyl", name: "Flooring (Tiles / Vinyl)" },
   { id: "pest-control-signs", name: "Pest Control Signs" },
+];
+
+export const OFFICE_BRANCHES: string[] = [
+  "Head Office",
+  "Branch A",
+  "Branch B",
+  "Warehouse",
+  "Others",
 ];
 
 export const VALIDATION_RULES = {

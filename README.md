@@ -116,6 +116,7 @@ docker run -d \
 ## 📝 Key Features
 
 - ✅ Interactive health check-up form
+- ✅ Branch name capture so each submission is traceable
 - ✅ Multiple office property reporting
 - ✅ Photo upload with preview
 - ✅ Real-time form validation
@@ -133,6 +134,7 @@ User Form → Next.js API → n8n Webhook → AI Processing → Email Report
 
 ```json
 {
+  "branchName": "Head Office",
   "submissionDate": "2024-01-15T10:30:00Z",
   "properties": [
     {
