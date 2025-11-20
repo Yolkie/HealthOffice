@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  officehealth:
+    build:
+      context: ./HealthOffice
+      dockerfile: Dockerfile
+    container_name: office-health
+    ports:
+      - "3000:3000"
+    env_file:
+      # Copy env.template to .env.local and edit values before running
+      - ./HealthOffice/.env.local
+    restart: unless-stopped
+    working_dir: /app
+    command: ["npm", "start"]
+
+    # If you want to develop with hot reload inside Docker, comment the command
+    # above and uncomment the lines below:
+    # command: ["npm", "run", "dev"]
+    # volumes:
+    #   - ./HealthOffice:/app
+    #   - /app/node_modules
+
+
