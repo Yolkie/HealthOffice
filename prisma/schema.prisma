@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Submission {
+  id                 String             @id @default(cuid())
+  reporterName       String
+  branchName         String
+  dateStarted        DateTime
+  dateEnded          DateTime
+  submissionDate     DateTime
+  additionalComments String?
+  metadata           Json?
+  createdAt          DateTime           @default(now())
+
+  properties PropertyReport[]
+}
+
+model PropertyReport {
+  id            String      @id @default(cuid())
+  submissionId  String
+  propertyId    String
+  propertyName  String
+  condition     String
+  comments      String?
+  photos        Json
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
+

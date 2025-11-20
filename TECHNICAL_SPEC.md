@@ -100,6 +100,15 @@ const VALIDATION_RULES = {
 };
 ```
 
+## Database
+
+- **ORM**: Prisma
+- **Engine**: SQLite (`file:./prisma/data.db` by default)
+- **Models**:
+  - `Submission`: stores reporter details, branch, timeframe, comments, metadata, and timestamps.
+  - `PropertyReport`: child rows per property with condition, comments, and serialized photo metadata (file paths / URLs, never raw image bytes).
+- Run `npx prisma db push` to create/update the schema before running the app locally or in CI/CD.
+
 ---
 
 ## API Specifications
@@ -254,6 +263,18 @@ The n8n workflow should process this data and generate:
   }
 }
 ```
+
+---
+
+## Admin APIs
+
+### GET /api/admin/submissions
+- Returns a summary list of reporters.
+- Each item has `reporterName`, `submissionsCount`, and `lastSubmissionDate`.
+
+### GET /api/admin/submissions/[reporterName]
+- Returns the submission history for a specific reporter.
+- Each submission includes branch, timeframe, comments, and an array of properties marked as “Needs Fixing” with their notes and photo references.
 
 ---
 

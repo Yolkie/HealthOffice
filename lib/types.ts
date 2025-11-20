@@ -149,6 +149,7 @@ export const BRANCH_OPTIONS = [
   "Cebu Branch",
   "Davao Branch",
   "Head Office",
+  "Lipa Branch",
 ];
 
 export const VALIDATION_RULES = {

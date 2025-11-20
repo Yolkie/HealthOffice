@@ -61,11 +61,17 @@ yarn install
    ```env
    N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/office-health-checkup
    N8N_WEBHOOK_KEY=your-api-key-here
+   DATABASE_URL="file:./prisma/data.db"
    ```
    
    **Note:** For local testing without n8n, you can leave these empty. The form will still work but submissions will fail (which is expected for testing the UI).
 
-3. **Run development server:**
+3. **Create the SQLite database (one time per environment):**
+```bash
+npx prisma db push
+```
+
+4. **Run development server:**
 ```bash
 npm run dev
 # or
@@ -74,7 +80,7 @@ pnpm dev
 yarn dev
 ```
 
-4. **Open your browser:**
+5. **Open your browser:**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Building for Production
@@ -116,11 +122,12 @@ docker run -d \
 ## 📝 Key Features
 
 - ✅ Interactive health check-up form
-- ✅ Reporter name and branch capture so each submission is traceable
+- ✅ Reporter name, branch, and timeframe capture so each submission is traceable
 - ✅ Guided property instructions so inspectors know exactly what to check
 - ✅ Multiple office property reporting
 - ✅ Photo upload with preview
 - ✅ Real-time form validation
+- ✅ Admin panel at `/admin` with submission history and “needs fixing” tracker
 - ✅ n8n webhook integration
 - ✅ AI-powered report generation
 - ✅ Automated email delivery
@@ -158,6 +165,16 @@ User Form → Next.js API → n8n Webhook → AI Processing → Email Report
   "additionalComments": "General comments here"
 }
 ```
+
+## 🗂️ Admin Panel (`/admin`)
+
+- Accessible by navigating directly to `/admin` (not linked from the main UI)
+- Shows a master list of reporters who have submitted check-ups
+- Clicking a name reveals their full submission history, including:
+  - Submission date, branch, inspection timeframe
+  - All properties marked **Needs Fixing**, with comments and photo links
+- Data is backed by a SQLite database via Prisma (run `npx prisma db push` before first use)
+- Photo binaries stay in object storage; the database only stores metadata/paths
 
 ## 🔐 Security
 

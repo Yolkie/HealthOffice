@@ -15,12 +15,17 @@ cp env.template .env.local
 # Edit .env.local and add your n8n webhook URL (optional for local testing)
 ```
 
-### 3. Start Development Server
+### 3. Create the SQLite Database
+```bash
+npx prisma db push
+```
+
+### 4. Start Development Server
 ```bash
 npm run dev
 ```
 
-### 4. Open Browser
+### 5. Open Browser
 Navigate to: http://localhost:3000
 
 ## Testing Without n8n Webhook
@@ -41,6 +46,7 @@ To test the full flow, you'll need to:
 ## Environment Variables
 
 ### Required (for full functionality)
+- `DATABASE_URL` - SQLite connection string (defaults to `file:./prisma/data.db`)
 - `N8N_WEBHOOK_URL` - Your n8n webhook endpoint URL
 
 ### Optional
@@ -70,7 +76,8 @@ npx tsc --noEmit
 
 1. Test the form locally
 2. Configure your n8n webhook
-3. Test the full submission flow
-4. Customize the office properties list in `lib/types.ts` if needed
+3. Run through the full submission workflow (form → DB → n8n)
+4. Visit `/admin` to review stored submissions and needs-fixing history
+5. Customize the office properties list in `lib/types.ts` if needed
 
 
