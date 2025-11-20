@@ -1,6 +1,6 @@
 FROM node:18-alpine AS base
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 # Install dependencies only when needed
@@ -31,7 +31,6 @@ RUN mkdir -p public
 ENV DATABASE_URL="file:./prisma/data.db"
 
 RUN npx prisma generate
-RUN npx prisma db push
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -57,6 +56,6 @@ USER nextjs
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma db push && npm start"]
 
 
