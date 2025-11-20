@@ -31,22 +31,22 @@ export async function POST(request: NextRequest) {
         dateEnded: new Date(data.dateEnded),
         submissionDate: new Date(data.submissionDate),
         additionalComments: data.additionalComments ?? null,
-        metadata: data.metadata ?? null,
+        metadata: data.metadata ? JSON.stringify(data.metadata) : null,
         properties: {
           create: data.properties.map((property) => ({
             propertyId: property.id,
             propertyName: property.name,
             condition: property.condition,
             comments: property.comments,
-            photos: property.photos.map(
-              ({ filename, url, obsKey, mimeType, size, propertyId: propId }) => ({
+            photosJson: JSON.stringify(
+              property.photos.map(({ filename, url, obsKey, mimeType, size, propertyId: propId }) => ({
                 filename,
                 url,
                 obsKey,
                 mimeType,
                 size,
                 propertyId: propId,
-              })
+              }))
             ),
           })),
         },
@@ -81,7 +81,9 @@ export async function POST(request: NextRequest) {
       submissionDate: submissionRecord.submissionDate.toISOString(),
       properties: data.properties,
       additionalComments: submissionRecord.additionalComments,
-      metadata: submissionRecord.metadata,
+      metadata: submissionRecord.metadata
+        ? JSON.parse(submissionRecord.metadata)
+        : null,
     };
 
     // Forward to n8n webhook

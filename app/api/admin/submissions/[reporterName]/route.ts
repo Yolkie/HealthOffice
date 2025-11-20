@@ -25,25 +25,26 @@ export async function GET(
       additionalComments: submission.additionalComments,
       needsFixing: submission.properties
         .filter((prop) => prop.condition === "Needs Fixing")
-        .map((prop) => ({
-          id: prop.id,
-          propertyId: prop.propertyId,
-          propertyName: prop.propertyName,
-          comments: prop.comments,
-          photos: (prop.photos as Array<{
-            filename?: string;
-            url?: string;
-            obsKey?: string;
-            mimeType?: string;
-            size?: number;
-          }>)?.map((photo) => ({
-            filename: photo.filename,
-            url: photo.url,
-            obsKey: photo.obsKey,
-            mimeType: photo.mimeType,
-            size: photo.size,
-          })),
-        })),
+        .map((prop) => {
+          const photos =
+            (prop.photosJson
+              ? (JSON.parse(prop.photosJson) as Array<{
+                  filename?: string;
+                  url?: string;
+                  obsKey?: string;
+                  mimeType?: string;
+                  size?: number;
+                }>)
+              : []) ?? [];
+
+          return {
+            id: prop.id,
+            propertyId: prop.propertyId,
+            propertyName: prop.propertyName,
+            comments: prop.comments,
+            photos,
+          };
+        }),
     }));
 
     return NextResponse.json({
