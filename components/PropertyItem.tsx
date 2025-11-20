@@ -58,14 +58,14 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
   return (
     <div className="space-y-4 rounded-lg border p-3 sm:p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="sm:max-w-[55%]">
           <Label className="text-base font-semibold">{property.name}</Label>
           {property.description && (
             <p className="text-xs italic text-muted-foreground mt-1">{property.description}</p>
           )}
         </div>
-        <div className="flex flex-wrap gap-3 sm:gap-6 sm:self-start">
-          <label className="flex items-center gap-2 cursor-pointer min-w-[140px] text-sm">
+        <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3 sm:gap-4 sm:min-w-[360px]">
+          <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
               name={`condition-${property.id}`}
@@ -76,7 +76,7 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
             />
             <span className="whitespace-nowrap">Good</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer min-w-[140px] text-sm">
+          <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
               name={`condition-${property.id}`}
@@ -87,7 +87,7 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
             />
             <span className="whitespace-nowrap">Needs Fixing</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer min-w-[140px] text-sm">
+          <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
               name={`condition-${property.id}`}
