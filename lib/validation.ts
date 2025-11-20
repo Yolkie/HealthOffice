@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { VALIDATION_RULES } from "./types";
+import { BRANCH_OPTIONS, VALIDATION_RULES } from "./types";
 
 export const propertySubmissionSchema = z.object({
   id: z.string(),
@@ -56,10 +56,13 @@ export const propertySubmissionSchema = z.object({
 );
 
 export const formSubmissionSchema = z.object({
-  branchName: z
+  reporterName: z
     .string()
-    .min(1, "Branch name is required")
-    .max(120, "Branch name must not exceed 120 characters"),
+    .min(2, "Name is required")
+    .max(150, "Name must not exceed 150 characters"),
+  branchName: z.enum(BRANCH_OPTIONS as [string, ...string[]], {
+    errorMap: () => ({ message: "Please select a branch" }),
+  }),
   submissionDate: z.string().datetime(),
   properties: z.array(propertySubmissionSchema).min(1),
   additionalComments: z

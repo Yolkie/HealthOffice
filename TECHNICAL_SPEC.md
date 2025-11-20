@@ -31,6 +31,14 @@ const OFFICE_PROPERTIES: OfficeProperty[] = [
   { id: "flooring-tiles-vinyl", name: "Flooring (Tiles / Vinyl)" },
   { id: "pest-control-signs", name: "Pest Control Signs" },
 ];
+
+const BRANCH_OPTIONS = [
+  "Iloilo Branch",
+  "Pampanga Branch",
+  "Cebu Branch",
+  "Davao Branch",
+  "Head Office",
+];
 ```
 
 ### Form Data Structure
@@ -56,6 +64,7 @@ interface PhotoFile {
 }
 
 interface FormSubmission {
+  reporterName: string;
   branchName: string;
   submissionDate: string; // ISO 8601 format
   properties: PropertySubmission[];
@@ -103,6 +112,7 @@ Content-Type: application/json
 #### Request Body
 ```typescript
 {
+  reporterName: string;
   branchName: string;
   submissionDate: string; // ISO 8601
   properties: PropertySubmission[];
@@ -175,6 +185,7 @@ Content-Type: application/json
 
 ```json
 {
+  "reporterName": "Juan Dela Cruz",
   "branchName": "Head Office",
   "submissionDate": "2024-01-15T10:30:00Z",
   "properties": [

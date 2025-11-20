@@ -3,15 +3,12 @@
 import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PropertySubmission, VALIDATION_RULES } from "@/lib/types";
+import { OfficeProperty, PropertySubmission, VALIDATION_RULES } from "@/lib/types";
 import { PhotoUpload } from "./PhotoUpload";
 import { PhotoFile } from "@/lib/types";
 
 interface PropertyItemProps {
-  property: {
-    id: string;
-    name: string;
-  };
+  property: OfficeProperty;
   value: PropertySubmission;
   onChange: (value: PropertySubmission) => void;
   errors?: {
@@ -61,7 +58,12 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
   return (
     <div className="space-y-4 rounded-lg border p-3 sm:p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Label className="text-base font-semibold">{property.name}</Label>
+        <div>
+          <Label className="text-base font-semibold">{property.name}</Label>
+          {property.description && (
+            <p className="text-xs italic text-muted-foreground mt-1">{property.description}</p>
+          )}
+        </div>
         <div className="flex flex-wrap gap-3 sm:gap-4">
           <label className="flex items-center gap-2 cursor-pointer">
             <input

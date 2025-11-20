@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { PropertyItem } from "./PropertyItem";
 import {
+  BRANCH_OPTIONS,
   OFFICE_PROPERTIES,
   PropertySubmission,
   FormSubmission,
@@ -32,7 +33,8 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
   const [submitError, setSubmitError] = React.useState<string | null>(null);
 
   const defaultValues: FormSubmissionInput = {
-    branchName: "",
+    reporterName: "",
+    branchName: BRANCH_OPTIONS[0],
     submissionDate: new Date().toISOString(),
     properties: OFFICE_PROPERTIES.map((prop) => ({
       id: prop.id,
@@ -64,6 +66,7 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
   });
 
   const properties = watch("properties");
+  const reporterName = watch("reporterName");
   const branchName = watch("branchName");
   const additionalComments = watch("additionalComments");
 
@@ -103,7 +106,8 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
 
       // Reset form after successful submission
       setTimeout(() => {
-        setValue("branchName", "");
+        setValue("reporterName", "");
+        setValue("branchName", BRANCH_OPTIONS[0]);
         setValue("properties", defaultValues.properties);
         setValue("additionalComments", null);
         setSubmitStatus("idle");
@@ -134,29 +138,64 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
       <Card>
         <CardHeader className="px-4 sm:px-6">
           <CardTitle className="text-xl sm:text-2xl">Branch Information</CardTitle>
-          <CardDescription className="text-sm">
-            Select or type the branch submitting this monthly report.
+          <CardDescription className="text-sm italic">
+            Provide your name and select the branch so each submission is traceable.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 px-4 sm:px-6">
-          <div>
-            <Label htmlFor="branch-name" className="text-sm">
-              Branch Name <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="branch-name"
-              placeholder="e.g., Head Office, Branch A"
-              value={branchName}
-              onChange={(e) => setValue("branchName", e.target.value, { shouldValidate: true })}
-              className="mt-1"
-              aria-invalid={errors.branchName ? "true" : "false"}
-              aria-describedby={errors.branchName ? "branch-name-error" : undefined}
-            />
-            {errors.branchName && (
-              <p id="branch-name-error" className="mt-1 text-xs text-destructive" role="alert">
-                {errors.branchName.message}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reporter-name" className="text-sm">
+                Name <span className="text-destructive">*</span>
+              </Label>
+              <p className="text-xs italic text-muted-foreground">
+                Please enter your full name for tracking and follow-up.
               </p>
-            )}
+              <Input
+                id="reporter-name"
+                placeholder="e.g., Juan Dela Cruz"
+                value={reporterName}
+                onChange={(e) =>
+                  setValue("reporterName", e.target.value, { shouldValidate: true })
+                }
+                className="mt-1"
+                aria-invalid={errors.reporterName ? "true" : "false"}
+                aria-describedby={errors.reporterName ? "reporter-name-error" : undefined}
+              />
+              {errors.reporterName && (
+                <p id="reporter-name-error" className="mt-1 text-xs text-destructive" role="alert">
+                  {errors.reporterName.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="branch-name" className="text-sm">
+                Branch Name <span className="text-destructive">*</span>
+              </Label>
+              <p className="text-xs italic text-muted-foreground">
+                Select the branch you are reporting from to tag the submission correctly.
+              </p>
+              <select
+                id="branch-name"
+                value={branchName}
+                onChange={(e) => setValue("branchName", e.target.value as FormSubmissionInput["branchName"], { shouldValidate: true })}
+                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-invalid={errors.branchName ? "true" : "false"}
+                aria-describedby={errors.branchName ? "branch-name-error" : undefined}
+              >
+                {BRANCH_OPTIONS.map((branch) => (
+                  <option key={branch} value={branch}>
+                    {branch}
+                  </option>
+                ))}
+              </select>
+              {errors.branchName && (
+                <p id="branch-name-error" className="mt-1 text-xs text-destructive" role="alert">
+                  {errors.branchName.message}
+                </p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -193,8 +232,8 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
       <Card>
         <CardHeader className="px-4 sm:px-6">
           <CardTitle className="text-xl sm:text-2xl">Additional Comments</CardTitle>
-          <CardDescription className="text-sm">
-            Any additional information or general observations about the office condition
+          <CardDescription className="text-sm italic">
+            Share any general observations about the branch condition or follow-up notes.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-4 sm:px-6">
