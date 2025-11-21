@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Get webhook URL from environment variables
-    const webhookUrl = "https://workflow.discoverycapital.com.ph/webhook-test/90bff59c-798a-4ec9-aab7-1efcc118b7c7";
+    const webhookUrl = process.env.N8N_WEBHOOK_URL;
     const webhookKey = process.env.N8N_WEBHOOK_KEY;
 
     if (!webhookUrl) {
