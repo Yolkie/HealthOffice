@@ -7,21 +7,47 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminPage() {
-  const reporterGroups = await prisma.submission.groupBy({
-    by: ["reporterName"],
-    _count: {
-      _all: true,
-    },
-    _max: {
+  const allSubmissions = await prisma.submission.findMany({
+    select: {
+      reporterName: true,
       submissionDate: true,
+    },
+    orderBy: {
+      submissionDate: "desc",
     },
   });
 
-  const reporters = reporterGroups
-    .map((group) => ({
-      reporterName: group.reporterName,
-      submissionsCount: group._count._all,
-      lastSubmissionDate: group._max.submissionDate?.toISOString() ?? null,
+  const reporterMap = new Map<
+    string,
+    { count: number; lastSubmissionDate: Date | null }
+  >();
+
+  for (const submission of allSubmissions) {
+    const name = submission.reporterName.trim();
+    if (!name) continue;
+
+    const existing = reporterMap.get(name);
+    if (existing) {
+      existing.count++;
+      if (
+        !existing.lastSubmissionDate ||
+        submission.submissionDate > existing.lastSubmissionDate
+      ) {
+        existing.lastSubmissionDate = submission.submissionDate;
+      }
+    } else {
+      reporterMap.set(name, {
+        count: 1,
+        lastSubmissionDate: submission.submissionDate,
+      });
+    }
+  }
+
+  const reporters = Array.from(reporterMap.entries())
+    .map(([reporterName, data]) => ({
+      reporterName,
+      submissionsCount: data.count,
+      lastSubmissionDate: data.lastSubmissionDate?.toISOString() ?? null,
     }))
     .sort((a, b) => {
       if (!a.lastSubmissionDate || !b.lastSubmissionDate) return 0;

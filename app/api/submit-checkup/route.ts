@@ -22,10 +22,13 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
+    console.log("Saving submission with reporterName:", data.reporterName);
+    console.log("Branch:", data.branchName);
+
     // Persist submission in database
     const submissionRecord = await prisma.submission.create({
       data: {
-        reporterName: data.reporterName,
+        reporterName: data.reporterName.trim(),
         branchName: data.branchName,
         dateStarted: new Date(data.dateStarted),
         dateEnded: new Date(data.dateEnded),
@@ -55,6 +58,9 @@ export async function POST(request: NextRequest) {
         properties: true,
       },
     });
+
+    console.log("Submission saved successfully with ID:", submissionRecord.id);
+    console.log("Saved reporterName:", submissionRecord.reporterName);
 
     // Get webhook URL from environment variables
     const webhookUrl = process.env.N8N_WEBHOOK_URL;
