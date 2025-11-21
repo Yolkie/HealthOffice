@@ -22,61 +22,97 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    console.log("Saving submission with reporterName:", data.reporterName);
+    const trimmedReporterName = data.reporterName.trim();
+    console.log("Saving submission with reporterName:", trimmedReporterName);
     console.log("Branch:", data.branchName);
+    console.log("Date Started:", data.dateStarted);
+    console.log("Date Ended:", data.dateEnded);
 
-    // Persist submission in database
-    const submissionRecord = await prisma.submission.create({
-      data: {
-        reporterName: data.reporterName.trim(),
-        branchName: data.branchName,
-        dateStarted: new Date(data.dateStarted),
-        dateEnded: new Date(data.dateEnded),
-        submissionDate: new Date(data.submissionDate),
-        additionalComments: data.additionalComments ?? null,
-        metadata: data.metadata ? JSON.stringify(data.metadata) : null,
-        properties: {
-          create: data.properties.map((property) => ({
-            propertyId: property.id,
-            propertyName: property.name,
-            condition: property.condition,
-            comments: property.comments,
-            photosJson: JSON.stringify(
-              property.photos.map(({ filename, url, obsKey, mimeType, size, propertyId: propId }) => ({
-                filename,
-                url,
-                obsKey,
-                mimeType,
-                size,
-                propertyId: propId,
-              }))
-            ),
-          })),
-        },
-      },
-      include: {
-        properties: true,
-      },
-    });
-
-    console.log("Submission saved successfully with ID:", submissionRecord.id);
-    console.log("Saved reporterName:", submissionRecord.reporterName);
-
-    // Get webhook URL from environment variables
-    const webhookUrl = process.env.N8N_WEBHOOK_URL;
-    const webhookKey = process.env.N8N_WEBHOOK_KEY;
-
-    if (!webhookUrl) {
-      console.error("N8N_WEBHOOK_URL is not configured");
+    if (!trimmedReporterName || trimmedReporterName.length < 2) {
+      console.error("Invalid reporterName:", trimmedReporterName);
       return NextResponse.json(
         {
           success: false,
-          error: "Webhook configuration error",
-          message: "Server configuration is incomplete",
+          error: "Validation failed",
+          message: "Reporter name is required and must be at least 2 characters",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Persist submission in database
+    let submissionRecord;
+    try {
+      submissionRecord = await prisma.submission.create({
+        data: {
+          reporterName: trimmedReporterName,
+          branchName: data.branchName,
+          dateStarted: new Date(data.dateStarted),
+          dateEnded: new Date(data.dateEnded),
+          submissionDate: new Date(data.submissionDate),
+          additionalComments: data.additionalComments ?? null,
+          metadata: data.metadata ? JSON.stringify(data.metadata) : null,
+          properties: {
+            create: data.properties.map((property) => ({
+              propertyId: property.id,
+              propertyName: property.name,
+              condition: property.condition,
+              comments: property.comments,
+              photosJson: JSON.stringify(
+                property.photos.map(({ filename, url, obsKey, mimeType, size, propertyId: propId }) => ({
+                  filename,
+                  url,
+                  obsKey,
+                  mimeType,
+                  size,
+                  propertyId: propId,
+                }))
+              ),
+            })),
+          },
+        },
+        include: {
+          properties: true,
+        },
+      });
+
+      console.log("Submission saved successfully with ID:", submissionRecord.id);
+      console.log("Saved reporterName:", submissionRecord.reporterName);
+      console.log("Saved branchName:", submissionRecord.branchName);
+      console.log("Number of properties saved:", submissionRecord.properties.length);
+
+      // Verify the record was actually saved
+      const verification = await prisma.submission.findUnique({
+        where: { id: submissionRecord.id },
+        select: { id: true, reporterName: true, branchName: true },
+      });
+
+      if (!verification) {
+        console.error("CRITICAL: Submission record not found after creation!");
+        throw new Error("Database verification failed");
+      }
+
+      console.log("Database verification successful:", verification);
+    } catch (dbError) {
+      console.error("Database error during submission save:", dbError);
+      if (dbError instanceof Error) {
+        console.error("Error message:", dbError.message);
+        console.error("Error stack:", dbError.stack);
+      }
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database error",
+          message: "Failed to save submission to database",
+          details: dbError instanceof Error ? dbError.message : "Unknown error",
         },
         { status: 500 }
       );
     }
+
+    // Get webhook URL from environment variables
+    const webhookUrl = process.env.N8N_WEBHOOK_URL;
+    const webhookKey = process.env.N8N_WEBHOOK_KEY;
 
     // Prepare payload for n8n webhook
     const payload = {
@@ -92,58 +128,65 @@ export async function POST(request: NextRequest) {
         : null,
     };
 
-    // Forward to n8n webhook
-    try {
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
+    // Forward to n8n webhook (non-blocking - database save already succeeded)
+    let webhookSuccess = false;
+    let webhookError = null;
 
-      if (webhookKey) {
-        headers["Authorization"] = `Bearer ${webhookKey}`;
+    if (webhookUrl) {
+      try {
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+
+        if (webhookKey) {
+          headers["Authorization"] = `Bearer ${webhookKey}`;
+        }
+
+        const webhookResponse = await fetch(webhookUrl, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(payload),
+        });
+
+        if (webhookResponse.ok) {
+          webhookSuccess = true;
+          const webhookResult = await webhookResponse.json().catch(() => ({}));
+          console.log("Webhook call successful");
+          return NextResponse.json(
+            {
+              success: true,
+              message: "Health check-up submitted successfully",
+              submissionId: submissionRecord.id,
+              timestamp: new Date().toISOString(),
+              webhookResponse: webhookResult,
+            },
+            { status: 200 }
+          );
+        } else {
+          const errorText = await webhookResponse.text();
+          console.error("Webhook error:", errorText);
+          webhookError = `Webhook returned status ${webhookResponse.status}`;
+        }
+      } catch (fetchError) {
+        console.error("Fetch error:", fetchError);
+        webhookError = fetchError instanceof Error ? fetchError.message : "Network error";
       }
-
-      const webhookResponse = await fetch(webhookUrl, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload),
-      });
-
-      if (!webhookResponse.ok) {
-        const errorText = await webhookResponse.text();
-        console.error("Webhook error:", errorText);
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Webhook request failed",
-            message: `Failed to submit to webhook: ${webhookResponse.status}`,
-          },
-          { status: 502 }
-        );
-      }
-
-      const webhookResult = await webhookResponse.json().catch(() => ({}));
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Health check-up submitted successfully",
-          submissionId: crypto.randomUUID(),
-          timestamp: new Date().toISOString(),
-          webhookResponse: webhookResult,
-        },
-        { status: 200 }
-      );
-    } catch (fetchError) {
-      console.error("Fetch error:", fetchError);
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Network error",
-          message: "Failed to connect to webhook endpoint",
-        },
-        { status: 503 }
-      );
+    } else {
+      console.warn("N8N_WEBHOOK_URL is not configured - skipping webhook call");
+      webhookError = "Webhook URL not configured";
     }
+
+    // Database save succeeded, but webhook failed - still return success
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Health check-up saved successfully",
+        submissionId: submissionRecord.id,
+        timestamp: new Date().toISOString(),
+        warning: webhookError ? `Data saved but webhook failed: ${webhookError}` : undefined,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("API error:", error);
     return NextResponse.json(

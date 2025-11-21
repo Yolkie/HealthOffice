@@ -3,8 +3,12 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
+    const totalCount = await prisma.submission.count();
+    console.log("Total submissions in database:", totalCount);
+
     const allSubmissions = await prisma.submission.findMany({
       select: {
+        id: true,
         reporterName: true,
         submissionDate: true,
       },
@@ -14,7 +18,12 @@ export async function GET() {
     });
 
     console.log("Total submissions found:", allSubmissions.length);
-    console.log("Sample submissions:", allSubmissions.slice(0, 3));
+    console.log("Sample submissions (first 5):", allSubmissions.slice(0, 5).map(s => ({
+      id: s.id,
+      reporterName: s.reporterName,
+      reporterNameLength: s.reporterName.length,
+      submissionDate: s.submissionDate,
+    })));
 
     const reporterMap = new Map<
       string,
