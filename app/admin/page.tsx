@@ -1,21 +1,58 @@
-import { prisma } from "@/lib/prisma";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import AdminPanel from "@/components/admin/AdminPanel";
+import UserManagement from "@/components/admin/UserManagement";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Admin Panel | Office Health Check-Up",
 };
 
 export default async function AdminPage() {
-  const allSubmissions = await prisma.submission.findMany({
-    select: {
-      reporterName: true,
-      submissionDate: true,
-    },
-    orderBy: {
-      submissionDate: "desc",
-    },
-  });
+  const cookieStore = cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          cookieStore.set({ name, value, ...options });
+        },
+        remove(name: string, options: CookieOptions) {
+          cookieStore.set({ name, value: "", ...options });
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.user_metadata.role !== "admin") {
+    redirect("/login");
+  }
+
+  const { data: allSubmissions, error } = await supabase
+    .from("Submission")
+    .select("*")
+    .order("submissionDate", { ascending: false });
+
+  if (error || !allSubmissions) {
+    console.error("Admin Page: Failed to load submissions:", error);
+    return (
+      <div className="p-8 text-center text-red-500">
+        Failed to load data. Please check your connection and credentials.
+      </div>
+    );
+  }
 
   const reporterMap = new Map<
     string,
@@ -31,14 +68,14 @@ export default async function AdminPage() {
       existing.count++;
       if (
         !existing.lastSubmissionDate ||
-        submission.submissionDate > existing.lastSubmissionDate
+        new Date(submission.submissionDate) > existing.lastSubmissionDate
       ) {
-        existing.lastSubmissionDate = submission.submissionDate;
+        existing.lastSubmissionDate = new Date(submission.submissionDate);
       }
     } else {
       reporterMap.set(name, {
         count: 1,
-        lastSubmissionDate: submission.submissionDate,
+        lastSubmissionDate: new Date(submission.submissionDate),
       });
     }
   }
@@ -65,9 +102,9 @@ export default async function AdminPage() {
           reports and problem areas.
         </p>
         <AdminPanel initialReporters={reporters} />
+        <UserManagement />
       </div>
     </div>
   );
 }
-
 

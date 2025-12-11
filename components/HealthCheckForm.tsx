@@ -18,6 +18,8 @@ import {
 } from "@/lib/types";
 import { formSubmissionSchema, FormSubmissionInput } from "@/lib/validation";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { createBrowserClient } from "@supabase/ssr";
+import { User } from "@supabase/supabase-js";
 
 interface HealthCheckFormProps {
   onSubmit?: (data: FormSubmission) => void;
@@ -31,6 +33,12 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitStatus, setSubmitStatus] = React.useState<"idle" | "success" | "error">("idle");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const todayISO = React.useMemo(() => new Date().toISOString().split("T")[0], []);
   const firstDayISO = React.useMemo(() => {
@@ -74,6 +82,19 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
     mode: "onChange",
   });
 
+  React.useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+
+      // If user has a branch assigned, set it
+      if (user?.user_metadata?.branch && user.user_metadata.branch !== "Not Assigned") {
+        setValue("branchName", user.user_metadata.branch, { shouldValidate: true });
+      }
+    };
+    getUser();
+  }, [setValue, supabase.auth]);
+
   const properties = watch("properties");
   const reporterName = watch("reporterName");
   const branchName = watch("branchName");
@@ -110,7 +131,7 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
 
       const result = await response.json();
       setSubmitStatus("success");
-      
+
       if (onSubmit) {
         onSubmit(data as FormSubmission);
       }
@@ -118,7 +139,10 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
       // Reset form after successful submission
       setTimeout(() => {
         setValue("reporterName", "");
-        setValue("branchName", BRANCH_OPTIONS[0]);
+        // Don't reset branch if it's assigned to user
+        if (!currentUser?.user_metadata?.branch || currentUser.user_metadata.branch === "Not Assigned") {
+          setValue("branchName", BRANCH_OPTIONS[0]);
+        }
         setValue("dateStarted", firstDayISO);
         setValue("dateEnded", todayISO);
         setValue("properties", defaultValues.properties);
@@ -129,7 +153,7 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
       const error = err instanceof Error ? err : new Error("Failed to submit form");
       setSubmitStatus("error");
       setSubmitError(error.message);
-      
+
       if (onError) {
         onError(error);
       }
@@ -146,6 +170,8 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
     });
   };
 
+  const isBranchLocked = currentUser?.user_metadata?.branch && currentUser.user_metadata.branch !== "Not Assigned";
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <Card>
@@ -157,26 +183,15 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
         </CardHeader>
         <CardContent className="space-y-4 px-4 sm:px-6">
           <div>
-            <Label htmlFor="reporter-name" className="text-sm">
+            <Label className="text-sm">
               Name <span className="text-destructive">*</span>
             </Label>
             <p className="text-xs italic text-muted-foreground">
-              Please enter your full name for tracking and follow-up.
+              Logged in as:
             </p>
-            <Input
-              id="reporter-name"
-              placeholder="e.g., Juan Dela Cruz"
-              value={reporterName}
-              onChange={(e) => setValue("reporterName", e.target.value, { shouldValidate: true })}
-              className="mt-1"
-              aria-invalid={errors.reporterName ? "true" : "false"}
-              aria-describedby={errors.reporterName ? "reporter-name-error" : undefined}
-            />
-            {errors.reporterName && (
-              <p id="reporter-name-error" className="mt-1 text-xs text-destructive" role="alert">
-                {errors.reporterName.message}
-              </p>
-            )}
+            <div className="mt-1 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-900">
+              {currentUser?.user_metadata?.username || currentUser?.email?.split("@")[0] || "Loading..."}
+            </div>
           </div>
 
           <div>
@@ -184,17 +199,21 @@ export const HealthCheckForm: React.FC<HealthCheckFormProps> = ({
               Branch Name <span className="text-destructive">*</span>
             </Label>
             <p className="text-xs italic text-muted-foreground">
-              Select the branch you are reporting from to tag the submission correctly.
+              {isBranchLocked
+                ? "Your branch is automatically assigned."
+                : "Select the branch you are reporting from to tag the submission correctly."}
             </p>
             <select
               id="branch-name"
               value={branchName}
+              disabled={!!isBranchLocked}
               onChange={(e) =>
                 setValue("branchName", e.target.value as FormSubmissionInput["branchName"], {
                   shouldValidate: true,
                 })
               }
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className={`mt-1 block w-full rounded-md border border-input px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${isBranchLocked ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-background"
+                }`}
               aria-invalid={errors.branchName ? "true" : "false"}
               aria-describedby={errors.branchName ? "branch-name-error" : undefined}
             >

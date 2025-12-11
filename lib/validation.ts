@@ -68,7 +68,9 @@ export const formSubmissionSchema = z.object({
   reporterName: z
     .string()
     .min(2, "Name is required")
-    .max(150, "Name must not exceed 150 characters"),
+    .max(150, "Name must not exceed 150 characters")
+    .optional()
+    .or(z.literal("")),
   branchName: z.enum(BRANCH_OPTIONS as [string, ...string[]], {
     errorMap: () => ({ message: "Please select a branch" }),
   }),
